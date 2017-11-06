@@ -190,6 +190,29 @@ Just [Num 1]
 --5. refine evaluation semantics to include these abstract ops 
 --the semantics now form a syntax tree to be interpreted by handlers 
 
+--free monadic eval without syntactic trick
+
+> evalfree :: (HStack ExprValue :<: g, HExc :<: g) => 
+>     Expr -> 
+>     Free g () ->
+>     Free g ()
+> evalfree (Val n) c = do
+>   c
+>   Cons (inj (Lift (Push (Num n) (Var ()))))
+> evalfree (Add e1 e2) c = do
+>   let c' = evalfree e1 c
+>   evalfree e2 c'
+>   (Num n) <- Cons (inj (Lift (Pop Var)))
+>   (Num m) <- Cons (inj (Lift (Pop Var)))
+>   Cons (inj (Lift (Push (Num (m+n)) (Var ()))))
+> evalfree ThrowE c = do 
+>   c
+>   Cons (inj Throw)
+> evalfree (CatchE x h) c = 
+>   Cons (inj (Catch (evalfree x c) (evalfree h c) return))
+
+--eval with syntactic sugar
+
 > eval' :: (HStack ExprValue :<: g, HExc :<: g) => 
 >     Expr -> 
 >     Free g () ->
