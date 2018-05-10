@@ -12,9 +12,13 @@ Combining algebraic effects with calculating compilers allows us to derive compi
 ## Contributions
 
 - Calculate a compiler for a simple expression language without algebraic handlers: Hutton's Razor.
-- Calculate a compiler for Hutton's Razor that captures the implicit state of the stack used in the Virtual Machine.
+- Calculate a compiler for Hutton's Razor that captures the implicit state of the stack used in the Virtual Machine. Example derivation can be found in the ICFP [Poster](ICFPSRCposter.pdf) with a longer description in the [SREPLS seminar](https://github.com/lukeg101/Talks/blob/master/AlgbraicEffectsCalculatingCompilers.pdf).
 - Calculate a compiler for Hutton's Razor + Exceptions, again capturing global/locally backtrackable state using Algebraic Effects.
 - Calculate a compiler for Paul Levy's Call by Push Value Calculus with Exceptions as a non-trivial case study and example of the Scalability of this method.
 
 ## Prerequisites
 You need [Haskell](https://www.haskell.org/), this compiles with GHC 8.2.2 at least (Stack resolver: lts-11.0).
+
+## Repository Structure
+- ICFPSRCposter: The poster presented at the ICFP Student Research Competition, University of Oxford
+- 
