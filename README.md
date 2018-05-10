@@ -19,6 +19,54 @@ Combining algebraic effects with calculating compilers allows us to derive compi
 ## Prerequisites
 You need [Haskell](https://www.haskell.org/), this compiles with GHC 8.2.2 at least (Stack resolver: lts-11.0).
 
+## To Build & Run
+To run load one of the following into the GHCi interpreter:
+- exprNoEffects.lhs
+- exprNoEffectsHandlers.lhs
+- exprWithExcAndHandlers.lhs
+- cbpv.lhs
+
+Use the GHCi Interpreter:
+`ghci exprNoEffectsHandlers`
+
+I don't include a `Main`, parsers, or front-end Repl for these languages. If you want to implement these yourself, then there are some parser/repl examples [here](https://github.com/lukeg101/lplzoo).
+
+## Examples 
+Suppose you run the above, then a simple addition `1+2` is: `Add (Val 1) (Val 2)`.
+
+You could evaluate this expression using a closed handler to get the result: 
+```
+Main> handleStackClosed [] $ evalfree $ Add (Val 1) (Val 2)
+([Num 3],())
+```
+Intuitively `evalfree` is a definitional interpreter that takes a machine configuration, source AST, and returns a new stack and value representing the state/success of the computation. Computations consisting purely of addition cannot fail, but in other (exceptional) examples this can happen.
+
+We could compile the example:
+```
+Main> comp1 $ Add (Val 1) (Val 2)
+PUSH (Num 1) (PUSH (Num 2) (ADD (HALT)))
+```
+and run it too:
+```
+Main> handleStackClosed [] $ exec' (comp1 (Add (Val 1) (Val 2))) (return ())
+([Num 3],())
+```
+`exec'` is the virtual machine for the `Code` which takes an expression with initial configuration and constructs an AST. The handler then performs a fold, essentially traversing&reducing the tree to a value in the semantic domain. A nifty observation here is that algebraic handlers give us the ability to modularise the syntactic structure of a term and the reduction relation.
+
+There is an interesting relationship between evaluation, compilation and execution:
+
+`handleStackClosed [] $ exec' (comp1 s) c = handleStackClosed [] $ evalfree s` for some configuration `c`.
+
+we could read this to mean handling/folding an evaluated expression reduces to the same expression as folding its compiled and executed alternative. This observation isn't new by any means but we can see how the proof (see [S-REPLS](https://github.com/lukeg101/Talks/blob/master/AlgbraicEffectsCalculatingCompilers.pdf)) of this is also the derivation.
+
+Adding more handlers to handle more effects doesn't change this fact and derivations follow the same process:
+```
+Main> (handleVoid . handleStackOpen [] $ exec' (comp1 (Add (Val 1) (Val 2))) (return ())) 
+  == (handleVoid . handleStackOpen [] $ eval' (Add (Val 1) (Val 2)) (return ()))
+True
+```
+Where `eval'` is semantically equivalent to `evalfree` but accounts for the more general type of the handlers. `HandleVoid` is the identity handler for abstract computations.
+
 ## Repository Structure
 - ICFPSRCposter: The poster presented at the ICFP Student Research Competition, University of Oxford
 - compclasses1/2/3.lhs: Literate Haskell Modules containing the mechanisms required to implement algebraic handlers. Here we implement first and higher-order effect handlers using Swierstra’s datatypes a' la carte [4] and Wu et al’s higher-order syntax [6] for languages with interacting effects and scoping constructs.
