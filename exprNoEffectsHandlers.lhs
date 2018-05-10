@@ -21,9 +21,14 @@
 >     PUSH :: ExprValue -> Code -> Code
 >     ADD  :: Code -> Code
 
+> instance Show Code where
+>   show HALT = "HALT"
+>   show (ADD t) = "ADD (" ++ show t ++")"
+>   show (PUSH v t) = "PUSH (" ++ show v ++ ") (" ++ show t ++ ")"
+
 --toy language Values
 
-> data ExprValue = Num Int deriving (Show)
+> data ExprValue = Num Int deriving (Eq, Show)
 
 --type synonym for value domain stack
 
@@ -176,7 +181,7 @@ much more satisfying than evalfree, nobody should program in trees!
 > 	Free g () -> 
 > 	Free g ()
 > exec' HALT c = c
-> exec' (PUSH v t) c = exec' t (push' v)
+> exec' (PUSH v t) c = exec' t (do {c; push' v})
 > exec' (ADD t) c = exec' t (do 
 > 	c
 > 	(Num n) <- pop'
